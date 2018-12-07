@@ -16,9 +16,6 @@ type result struct {
 }
 
 func main() {
-	var stdin io.Reader
-	stdin = os.Stdin
-
 	allRunes := `abcdefghijklmnopqrstuvwxyz`
 	ins := make([]chan<- rune, 0, len(allRunes))
 	outs := make([]<-chan result, 0, len(allRunes))
@@ -28,7 +25,7 @@ func main() {
 		outs = append(outs, out)
 	}
 
-	r := bufio.NewReader(stdin)
+	r := bufio.NewReader(os.Stdin)
 	for {
 		r, _, err := r.ReadRune()
 		if err == io.EOF {

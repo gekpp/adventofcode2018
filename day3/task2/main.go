@@ -21,12 +21,7 @@ type row struct {
 
 func main() {
 
-	var stdin io.Reader = os.Stdin
-	//	var stdin io.Reader = bytes.NewBuffer([]byte(`#1 @ 1,3: 4x4
-	//#2 @ 3,1: 4x4
-	//#3 @ 5,5: 2x2
-	//`))
-	r := bufio.NewReader(stdin)
+	r := bufio.NewReader(os.Stdin)
 	plot := make(matrix)
 	var claims []row
 
