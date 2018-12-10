@@ -1,0 +1,1 @@
+cat day10/input-ark.txt| go run day10/main.go > /tmp/pic.png ; open /tmp/pic.png
