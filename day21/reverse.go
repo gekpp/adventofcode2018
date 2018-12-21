@@ -9,6 +9,11 @@ func conversion(startA int) {
 		_, A, B, C, D, E, F int
 		// 0  1  2  3  4  5
 	)
+	ds := make(map[int]struct{})
+	var (
+		prev  int
+		first = true
+	)
 
 	A = startA
 	_ = E
@@ -22,12 +27,8 @@ func conversion(startA int) {
 		}
 	}
 	D = 0
-	ds := make(map[int]struct{})
-	var (
-		prev  int
-		first = true
-	)
 
+	//mainLoop:
 	for {
 		C = D | 65536
 		D = 10736359

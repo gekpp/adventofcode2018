@@ -16,8 +16,31 @@ func main() {
 	regIp, program := readInput("day21/input-ark.txt")
 	conversion(0)
 
-	_ = regIp
-	_ = program
+	var reg regs
+	reg[0] = 1413889
+	steps := asm(&reg, regIp, program)
+	fmt.Println(steps)
+}
+
+func asm(reg *regs, regIp int, program []instruction) int {
+	ip := reg[regIp]
+	var instCnt int
+	for ip < len(program) {
+		reg[regIp] = ip
+
+		command := program[ip]
+		fn := funcs[command.op]
+		args := command.args
+
+		fn(args[0], args[1], args[2], reg)
+		ip = reg[regIp]
+		ip++
+		instCnt++
+		if ip > 30 {
+			break
+		}
+	}
+	return instCnt
 }
 
 func readInput(filename string) (ip int, res []instruction) {
