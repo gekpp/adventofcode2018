@@ -83,7 +83,43 @@ type bot struct {
 	r int
 }
 
-func (b bot) interfere(c brick) bool {
+func botInterfereRectSide(p point, r int, p0, p2 point) bool {
+	var nearest point
+
+	if between(p.x, p0.x, p2.x) {
+		nearest.x = p.x
+	} else {
+		if abs(p.x-p0.x) < abs(p.x-p2.x) {
+			nearest.x = p0.x
+		} else {
+			nearest.x = p2.x
+		}
+	}
+
+	if between(p.y, p0.y, p2.y) {
+		nearest.y = p.y
+	} else {
+		if abs(p.y-p0.y) < abs(p.y-p2.y) {
+			nearest.y = p0.y
+		} else {
+			nearest.y = p2.y
+		}
+	}
+
+	if between(p.z, p0.z, p2.z) {
+		nearest.z = p.z
+	} else {
+		if abs(p.z-p0.z) < abs(p.z-p2.z) {
+			nearest.z = p0.z
+		} else {
+			nearest.z = p2.z
+		}
+	}
+
+	return dist(nearest, p) <= r
+}
+
+func (b bot) interfere1(c brick) bool {
 
 	if inside(b.point, c) {
 		return true
@@ -95,20 +131,59 @@ func (b bot) interfere(c brick) bool {
 		}
 	}
 
-	if zok := botInterfereRectSide(bot{point{b.x, b.y, 0}, b.r}, project(c.points[0:4], axZ)); !zok {
-		return false
+	if botInterfereRectSide(b.point, b.r, c.points[0], c.points[2]) {
+		return true
 	}
 
-	if yok := botInterfereRectSide(bot{point{b.x, b.z, 0}, b.r}, project([]point{c.points[0], c.points[1], c.points[5], c.points[4]}, axY)); !yok {
-		return false
+	if botInterfereRectSide(b.point, b.r, c.points[4], c.points[6]) {
+		return true
 	}
 
-	if xok := botInterfereRectSide(bot{point{b.y, b.z, 0}, b.r}, project([]point{c.points[0], c.points[3], c.points[7], c.points[4]}, axX)); !xok {
-		return false
+	if botInterfereRectSide(b.point, b.r, c.points[0], c.points[5]) {
+		return true
 	}
 
-	return true
+	if botInterfereRectSide(b.point, b.r, c.points[3], c.points[6]) {
+		return true
+	}
+
+	if botInterfereRectSide(b.point, b.r, c.points[0], c.points[7]) {
+		return true
+	}
+
+	if botInterfereRectSide(b.point, b.r, c.points[1], c.points[6]) {
+		return true
+	}
+
+	return false
 }
+
+//func (b bot) interfere(c brick) bool {
+//
+//	if inside(b.point, c) {
+//		return true
+//	}
+//
+//	for _, p := range c.points {
+//		if d := dist(p, b.point); d <= b.r {
+//			return true
+//		}
+//	}
+//
+//	if zok := botInterfereRectSide(bot{point{b.x, b.y, 0}, b.r}, project(c.points[0:4], axZ)); !zok {
+//		return false
+//	}
+//
+//	if yok := botInterfereRectSide(bot{point{b.x, b.z, 0}, b.r}, project([]point{c.points[0], c.points[1], c.points[5], c.points[4]}, axY)); !yok {
+//		return false
+//	}
+//
+//	if xok := botInterfereRectSide(bot{point{b.y, b.z, 0}, b.r}, project([]point{c.points[0], c.points[3], c.points[7], c.points[4]}, axX)); !xok {
+//		return false
+//	}
+//
+//	return true
+//}
 
 func project(points []point, zeroAxis int) []point {
 	res := make([]point, len(points), len(points))
@@ -123,18 +198,6 @@ func project(points []point, zeroAxis int) []point {
 		}
 	}
 	return res
-}
-
-func botInterfereRectSide(b bot, p []point) bool {
-
-	if between(b.x, p[0].x, p[1].x) {
-		return between(b.y, p[0].y, p[3].y) || abs(b.y-p[0].y) <= b.r || abs(b.y-p[2].y) <= b.r
-	}
-
-	if between(b.y, p[0].y, p[3].y) {
-		return abs(b.x-p[0].x) <= b.r || abs(b.x-p[1].x) <= b.r
-	}
-	return false
 }
 
 func abs(v int) int {
@@ -226,18 +289,17 @@ func searchDown(queue []brick, bots []bot) ([]brick, int) {
 	var max int
 	cubeToBotsN := make(map[brick]int)
 	brickToBotsHash := make(map[brick]uint64)
+	var notInterfereBots []int
 	for _, c := range queue {
 		buf := make([]byte, 0)
 		bc := 0
 		for i, b := range bots {
-			if b.interfere(c) {
-				buf = append(buf, []byte(fmt.Sprintf("%04d", i))...)
+			if b.interfere1(c) {
 				bc++
+				buf = append(buf, []byte(fmt.Sprintf("%04d", i))...)
+			} else {
+				notInterfereBots = append(notInterfereBots, i)
 			}
-		}
-
-		if bc < max {
-			continue
 		}
 
 		cubeToBotsN[c] = bc
